@@ -3,15 +3,20 @@ package com.genomebank.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 
+/**
+ * Representa un rol dentro del sistema.
+ * Define permisos como ADMIN o USER.
+ */
+@Data
 @Entity
 @Table(name = "roles")
-@Data
-public class Role{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class Role {
+
+    /** Identificador único autogenerado */
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true,length = 50)
-    private String nombre; // ADMIN, USER, etc.
+    /** Nombre del rol (único) */
+    @Column(nullable = false, unique = true, length = 50)
+    private String name;
 }
-
