@@ -1,8 +1,12 @@
 package com.genomebank.services.impl;
 
+import com.genomebank.dtos.ChromosomeInDTO;
 import com.genomebank.entities.Chromosome;
+import com.genomebank.entities.Genome;
 import com.genomebank.repositories.ChromosomeRepository;
+import com.genomebank.repositories.GenomeRepository;
 import com.genomebank.services.IChromosomeService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +16,11 @@ import java.util.Optional;
 public class ChromosomeService implements IChromosomeService {
 
     private final ChromosomeRepository chromosomeRepository;
+    private final GenomeRepository genomeRepository;
 
-    public ChromosomeService(ChromosomeRepository chromosomeRepository) {
+    public ChromosomeService(ChromosomeRepository chromosomeRepository, GenomeRepository genomeRepository) {
         this.chromosomeRepository = chromosomeRepository;
+        this.genomeRepository = genomeRepository;
     }
 
     @Override
@@ -28,12 +34,13 @@ public class ChromosomeService implements IChromosomeService {
     }
 
     @Override
-    public Chromosome crearCromosoma(Chromosome chromosome) {
+    public Chromosome crearCromosoma(ChromosomeInDTO chromosomeInDTO) {
+        Genome genome = genomeRepository.getReferenceById(chromosomeInDTO.getGenomeId());
         Chromosome c = new Chromosome();
-        c.setName(chromosome.getName());
-        c.setLength(chromosome.getLength());
-        c.setSequence(chromosome.getSequence());
-        c.setGenome(chromosome.getGenome());
+        c.setName(chromosomeInDTO.getName());
+        c.setLength(chromosomeInDTO.getLength());
+        c.setSequence(chromosomeInDTO.getSequence());
+        c.setGenome(genome);
         return chromosomeRepository.save(c);
     }
 
