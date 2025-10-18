@@ -1,20 +1,21 @@
-HELP.md
+### Maven ###
 target/
-.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+HELP.md
+.mvn/wrapper/maven-wrapper.jar
 
-### STS ###
+### STS (Spring Tool Suite) ###
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -31,3 +32,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### OS files ###
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+# Linux temporary files
+*~
+
+### Logs ###
+*.log
+
+### Environment ###
+.env
