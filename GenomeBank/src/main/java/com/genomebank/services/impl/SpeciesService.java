@@ -1,5 +1,7 @@
 package com.genomebank.services.impl;
 
+import com.genomebank.dtos.SpeciesInDTO;
+import com.genomebank.dtos.SpeciesOutDTO;
 import com.genomebank.entities.Species;
 import com.genomebank.repositories.SpeciesRepository;
 import com.genomebank.services.ISpeciesService;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -19,21 +22,41 @@ public class SpeciesService implements ISpeciesService {
     }
 
     @Override
-    public List<Species> obtenerEspecies() {
-        return this.speciesRepository.findAll();
+    public List<SpeciesOutDTO> obtenerEspecies() {
+        return speciesRepository.findAll().stream()
+                .map(species -> {
+                    SpeciesOutDTO oe = new SpeciesOutDTO();
+                    oe.setId(species.getId());
+                    oe.setScientificName(species.getScientificName());
+                    oe.setCommonName(species.getCommonName());
+                    return oe;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Species> obtenerEspeciesPorId(Long id){return this.speciesRepository.findById(id);}
+    public Optional<SpeciesOutDTO> obtenerEspeciesPorId(Long id) {
+        return speciesRepository.findById(id).map(species -> {
+            SpeciesOutDTO oep = new SpeciesOutDTO();
+            oep.setId(species.getId());
+            oep.setScientificName(species.getScientificName());
+            oep.setCommonName(species.getCommonName());
+            return oep;
+        });
+    }
 
     @Override
-    public Species crearEspecie(Species species){
+    public SpeciesOutDTO crearEspecie(SpeciesInDTO speciesInDTO) {
         Species specie = new Species();
-        specie.setScientificName(species.getScientificName());
-        specie.setCommonName(species.getCommonName());
-
-        return speciesRepository.save(specie);
-
+        specie.setScientificName(speciesInDTO.getScientificName());
+        specie.setCommonName(speciesInDTO.getCommonName());
+        Species savedSpecies = speciesRepository.save(specie);
+        
+        SpeciesOutDTO ce = new SpeciesOutDTO();
+        ce.setId(savedSpecies.getId());
+        ce.setScientificName(savedSpecies.getScientificName());
+        ce.setCommonName(savedSpecies.getCommonName());
+        return ce;
     }
 
     @Override

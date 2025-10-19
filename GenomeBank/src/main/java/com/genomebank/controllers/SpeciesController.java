@@ -1,5 +1,7 @@
 package com.genomebank.controllers;
 
+import com.genomebank.dtos.SpeciesInDTO;
+import com.genomebank.dtos.SpeciesOutDTO;
 import com.genomebank.entities.Species;
 import com.genomebank.services.ISpeciesService;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +23,8 @@ public class SpeciesController {
      * Crear una nueva especie.
      */
     @PostMapping("/crear")
-    public ResponseEntity<Species> crearEspecie(@RequestBody Species species) {
-        return ResponseEntity.ok(speciesService.crearEspecie(species));
+    public ResponseEntity<SpeciesOutDTO> crearEspecie(@RequestBody SpeciesInDTO speciesInDTO) {
+        return ResponseEntity.ok(speciesService.crearEspecie(speciesInDTO));
     }
 
     /**
@@ -49,7 +51,7 @@ public class SpeciesController {
      * Consultar todas las especies.
      */
     @GetMapping("/consultar_todos")
-    public ResponseEntity<List<Species>> obtenerEspecies() {
+    public ResponseEntity<List<SpeciesOutDTO>> obtenerEspecies() {
         return ResponseEntity.ok(speciesService.obtenerEspecies());
     }
 
@@ -57,7 +59,7 @@ public class SpeciesController {
      * Consultar una especie por ID.
      */
     @GetMapping("/consultar/{id}")
-    public ResponseEntity<Species> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<SpeciesOutDTO> obtenerPorId(@PathVariable Long id) {
         return speciesService.obtenerEspeciesPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

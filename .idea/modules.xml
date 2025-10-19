@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/GenomeBank/GenomeBank.iml" filepath="$PROJECT_DIR$/GenomeBank/GenomeBank.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/GenomeBank.iml" filepath="$PROJECT_DIR$/.idea/GenomeBank.iml" />
     </modules>
   </component>
 </project>
