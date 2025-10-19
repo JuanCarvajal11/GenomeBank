@@ -1,19 +1,19 @@
 package com.genomebank.services;
 
 import com.genomebank.dtos.ChromosomeInDTO;
-import com.genomebank.entities.Chromosome;
+import com.genomebank.dtos.ChromosomeOutDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface IChromosomeService {
-    public Chromosome crearCromosoma(ChromosomeInDTO chromosomeInDTO);
+    ChromosomeOutDTO crearCromosoma(ChromosomeInDTO chromosomeInDTO);
 
-    public List<Chromosome> obtenerCromosomas();
+    List<ChromosomeOutDTO> obtenerCromosomas();
 
-    public Optional<Chromosome> obtenerCromosomaPorId(Long id);
+    Optional<ChromosomeOutDTO> obtenerCromosomaPorId(Long id);
 
-    public Optional<Chromosome> actualizarCromosoma(Long id, Chromosome chromosome);
+    Optional<ChromosomeOutDTO> actualizarCromosoma(Long id, ChromosomeInDTO chromosomeInDTO);
 
-    public void eliminarCromosoma(Long id);
+    void eliminarCromosoma(Long id);
 }

@@ -1,5 +1,7 @@
 package com.genomebank.services.impl;
 
+import com.genomebank.dtos.FunctionInDTO;
+import com.genomebank.dtos.FunctionOutDTO;
 import com.genomebank.entities.Function;
 import com.genomebank.repositories.FunctionRepository;
 import com.genomebank.services.IFunctionService;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FunctionService implements IFunctionService {
@@ -18,36 +21,47 @@ public class FunctionService implements IFunctionService {
     }
 
     @Override
-    public List<Function> obtenerFunciones() {
-        return functionRepository.findAll();
+    public List<FunctionOutDTO> obtenerFunciones() {
+        return functionRepository.findAll().stream()
+                .map(this::convertirAOutDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Function> obtenerFuncionPorId(Long id) {
-        return functionRepository.findById(id);
+    public Optional<FunctionOutDTO> obtenerFuncionPorId(Long id) {
+        return functionRepository.findById(id).map(this::convertirAOutDTO);
     }
 
     @Override
-    public Function crearFuncion(Function function) {
+    public FunctionOutDTO crearFuncion(FunctionInDTO functionInDTO) {
         Function f = new Function();
-        f.setCode(function.getCode());
-        f.setName(function.getName());
-        f.setCategory(function.getCategory());
-        return functionRepository.save(f);
+        f.setCode(functionInDTO.getCode());
+        f.setName(functionInDTO.getName());
+        f.setCategory(functionInDTO.getCategory());
+        return convertirAOutDTO(functionRepository.save(f));
     }
 
     @Override
-    public Optional<Function> actualizarFuncion(Long id, Function function) {
+    public Optional<FunctionOutDTO> actualizarFuncion(Long id, FunctionInDTO functionInDTO) {
         return functionRepository.findById(id).map(fEncontrada -> {
-            fEncontrada.setCode(function.getCode());
-            fEncontrada.setName(function.getName());
-            fEncontrada.setCategory(function.getCategory());
-            return functionRepository.save(fEncontrada);
+            fEncontrada.setCode(functionInDTO.getCode());
+            fEncontrada.setName(functionInDTO.getName());
+            fEncontrada.setCategory(functionInDTO.getCategory());
+            return convertirAOutDTO(functionRepository.save(fEncontrada));
         });
     }
 
     @Override
     public void eliminarFuncion(Long id) {
         functionRepository.deleteById(id);
+    }
+
+    private FunctionOutDTO convertirAOutDTO(Function function) {
+        FunctionOutDTO dto = new FunctionOutDTO();
+        dto.setId(function.getId());
+        dto.setCode(function.getCode());
+        dto.setName(function.getName());
+        dto.setCategory(function.getCategory());
+        return dto;
     }
 }

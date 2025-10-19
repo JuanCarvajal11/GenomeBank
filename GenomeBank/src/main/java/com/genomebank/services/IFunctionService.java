@@ -1,18 +1,18 @@
 package com.genomebank.services;
 
-import com.genomebank.entities.Function;
-
+import com.genomebank.dtos.FunctionInDTO;
+import com.genomebank.dtos.FunctionOutDTO;
 import java.util.List;
 import java.util.Optional;
 
 public interface IFunctionService {
-    public List<Function> obtenerFunciones();
+    List<FunctionOutDTO> obtenerFunciones();
 
-    public Optional<Function> obtenerFuncionPorId(Long id);
+    Optional<FunctionOutDTO> obtenerFuncionPorId(Long id);
 
-    public Function crearFuncion(Function function);
+    FunctionOutDTO crearFuncion(FunctionInDTO functionInDTO);
 
-    public Optional<Function> actualizarFuncion(Long id, Function function);
+    Optional<FunctionOutDTO> actualizarFuncion(Long id, FunctionInDTO functionInDTO);
 
-    public void eliminarFuncion(Long id);
+    void eliminarFuncion(Long id);
 }

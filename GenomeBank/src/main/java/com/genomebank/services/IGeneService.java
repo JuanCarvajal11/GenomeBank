@@ -1,18 +1,20 @@
 package com.genomebank.services;
 
-import com.genomebank.entities.Gene;
+import com.genomebank.dtos.GeneFunctionInDTO;
+import com.genomebank.dtos.GeneFunctionOutDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface IGeneService {
-    public List<Gene> obtenerGenes();
 
-    public Optional<Gene> obtenerGenPorId(Long id);
+    List<GeneFunctionOutDTO> obtenerGenes();
 
-    public Gene crearGen(Gene gene);
+    Optional<GeneFunctionOutDTO> obtenerGenPorId(Long id);
 
-    public Optional<Gene> actualizarGen(Long id, Gene gene);
+    GeneFunctionOutDTO crearGen(GeneFunctionInDTO geneInDTO);
 
-    public void eliminarGen(Long id);
+    Optional<GeneFunctionOutDTO> actualizarGen(Long id, GeneFunctionInDTO geneInDTO);
+
+    void eliminarGen(Long id);
 }

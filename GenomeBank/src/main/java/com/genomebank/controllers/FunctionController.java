@@ -1,6 +1,7 @@
 package com.genomebank.controllers;
 
-import com.genomebank.entities.Function;
+import com.genomebank.dtos.FunctionInDTO;
+import com.genomebank.dtos.FunctionOutDTO;
 import com.genomebank.services.IFunctionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,44 +21,35 @@ public class FunctionController {
     /**
      * Crear una nueva función.
      */
-    @PostMapping("/crear")
-    public ResponseEntity<Function> crearFunction(@RequestBody Function function) {
-        return ResponseEntity.ok(functionService.crearFuncion(function));
+    @PostMapping("/create")
+    public ResponseEntity<FunctionOutDTO> crearFunction(@RequestBody FunctionInDTO functionInDTO) {
+        return ResponseEntity.ok(functionService.crearFuncion(functionInDTO));
     }
 
     /**
      * Actualizar una función completamente.
      */
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<Function> actualizarFunction(@PathVariable Long id, @RequestBody Function function) {
-        return functionService.actualizarFuncion(id, function)
+    @PutMapping("/update/{id}")
+    public ResponseEntity<FunctionOutDTO> actualizarFunction(@PathVariable Long id,
+                                                             @RequestBody FunctionInDTO functionInDTO) {
+        return functionService.actualizarFuncion(id, functionInDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Actualizar parcialmente una función.
-     */
-    /*@PatchMapping("/actualizar_parcial/{id}")
-    public ResponseEntity<Function> actualizarFunctionParcial(@PathVariable Long id, @RequestBody Function function) {
-        return functionService.actualiza(id, function)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }*/
-
-    /**
      * Consultar todas las funciones.
      */
-    @GetMapping("/consultar_todos")
-    public ResponseEntity<List<Function>> obtenerFunciones() {
+    @GetMapping("/")
+    public ResponseEntity<List<FunctionOutDTO>> obtenerFunciones() {
         return ResponseEntity.ok(functionService.obtenerFunciones());
     }
 
     /**
      * Consultar una función por ID.
      */
-    @GetMapping("/consultar/{id}")
-    public ResponseEntity<Function> obtenerPorId(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<FunctionOutDTO> obtenerPorId(@PathVariable Long id) {
         return functionService.obtenerFuncionPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -66,7 +58,7 @@ public class FunctionController {
     /**
      * Eliminar una función.
      */
-    @DeleteMapping("/eliminar/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> eliminarFunction(@PathVariable Long id) {
         functionService.eliminarFuncion(id);
         return ResponseEntity.noContent().build();
