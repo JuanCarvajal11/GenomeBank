@@ -4,26 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO para crear o actualizar una especie.
+ * Contiene solo los datos necesarios desde el cliente.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class SpeciesInDTO {
     private String scientificName;
     private String commonName;
-
-    public String getScientificName() {
-        return scientificName;
-    }
-
-    public void setScientificName(String scientificName) {
-        this.scientificName = scientificName;
-    }
-
-    public String getCommonName() {
-        return commonName;
-    }
-
-    public void setCommonName(String commonName) {
-        this.commonName = commonName;
-    }
 }

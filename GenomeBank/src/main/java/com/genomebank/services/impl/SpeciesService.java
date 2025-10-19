@@ -7,15 +7,18 @@ import com.genomebank.repositories.SpeciesRepository;
 import com.genomebank.services.ISpeciesService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-
+/**
+ * Implementación del servicio para gestionar especies biológicas.
+ * Maneja la lógica de negocio y conversión entre entidades y DTOs.
+ */
 @Service
 public class SpeciesService implements ISpeciesService {
-    private final SpeciesRepository speciesRepository;
 
+    private final SpeciesRepository speciesRepository;
 
     public SpeciesService(SpeciesRepository speciesRepository) {
         this.speciesRepository = speciesRepository;
@@ -23,49 +26,72 @@ public class SpeciesService implements ISpeciesService {
 
     @Override
     public List<SpeciesOutDTO> obtenerEspecies() {
-        return speciesRepository.findAll().stream()
-                .map(species -> {
-                    SpeciesOutDTO oe = new SpeciesOutDTO();
-                    oe.setId(species.getId());
-                    oe.setScientificName(species.getScientificName());
-                    oe.setCommonName(species.getCommonName());
-                    return oe;
-                })
-                .collect(Collectors.toList());
+        List<Species> especies = speciesRepository.findAll();
+        List<SpeciesOutDTO> resultado = new ArrayList<>();
+
+        for (Species species : especies) {
+            SpeciesOutDTO dto = new SpeciesOutDTO();
+            dto.setId(species.getId());
+            dto.setScientificName(species.getScientificName());
+            dto.setCommonName(species.getCommonName());
+            resultado.add(dto);
+        }
+
+        return resultado;
     }
 
     @Override
-    public Optional<SpeciesOutDTO> obtenerEspeciesPorId(Long id) {
-        return speciesRepository.findById(id).map(species -> {
-            SpeciesOutDTO oep = new SpeciesOutDTO();
-            oep.setId(species.getId());
-            oep.setScientificName(species.getScientificName());
-            oep.setCommonName(species.getCommonName());
-            return oep;
-        });
+    public Optional<SpeciesOutDTO> obtenerEspeciePorId(Long id) {
+        Optional<Species> speciesOpt = speciesRepository.findById(id);
+
+        if (speciesOpt.isPresent()) {
+            Species species = speciesOpt.get();
+            SpeciesOutDTO dto = new SpeciesOutDTO();
+            dto.setId(species.getId());
+            dto.setScientificName(species.getScientificName());
+            dto.setCommonName(species.getCommonName());
+            return Optional.of(dto);
+        }
+
+        return Optional.empty();
     }
 
     @Override
     public SpeciesOutDTO crearEspecie(SpeciesInDTO speciesInDTO) {
-        Species specie = new Species();
-        specie.setScientificName(speciesInDTO.getScientificName());
-        specie.setCommonName(speciesInDTO.getCommonName());
-        Species savedSpecies = speciesRepository.save(specie);
-        
-        SpeciesOutDTO ce = new SpeciesOutDTO();
-        ce.setId(savedSpecies.getId());
-        ce.setScientificName(savedSpecies.getScientificName());
-        ce.setCommonName(savedSpecies.getCommonName());
-        return ce;
+        Species species = new Species();
+        species.setScientificName(speciesInDTO.getScientificName());
+        species.setCommonName(speciesInDTO.getCommonName());
+
+        Species savedSpecies = speciesRepository.save(species);
+
+        SpeciesOutDTO dto = new SpeciesOutDTO();
+        dto.setId(savedSpecies.getId());
+        dto.setScientificName(savedSpecies.getScientificName());
+        dto.setCommonName(savedSpecies.getCommonName());
+
+        return dto;
     }
 
     @Override
-    public Optional<Species> actualizarEspecie(Long id, Species species){
-        return this.speciesRepository.findById(id).map(especieEncontrada -> {
-            especieEncontrada.setCommonName(species.getCommonName());
-            especieEncontrada.setScientificName(species.getScientificName());
-            return speciesRepository.save(especieEncontrada);
-        });
+    public Optional<SpeciesOutDTO> actualizarEspecie(Long id, SpeciesInDTO speciesInDTO) {
+        Optional<Species> speciesOpt = speciesRepository.findById(id);
+
+        if (speciesOpt.isPresent()) {
+            Species especieEncontrada = speciesOpt.get();
+            especieEncontrada.setScientificName(speciesInDTO.getScientificName());
+            especieEncontrada.setCommonName(speciesInDTO.getCommonName());
+
+            Species savedSpecies = speciesRepository.save(especieEncontrada);
+
+            SpeciesOutDTO dto = new SpeciesOutDTO();
+            dto.setId(savedSpecies.getId());
+            dto.setScientificName(savedSpecies.getScientificName());
+            dto.setCommonName(savedSpecies.getCommonName());
+
+            return Optional.of(dto);
+        }
+
+        return Optional.empty();
     }
 
     @Override
