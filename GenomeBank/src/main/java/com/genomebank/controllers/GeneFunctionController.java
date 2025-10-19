@@ -1,5 +1,7 @@
 package com.genomebank.controllers;
 
+import com.genomebank.dtos.GeneFunctionInDTO;
+import com.genomebank.dtos.GeneFunctionOutDTO;
 import com.genomebank.entities.GeneFunction;
 import com.genomebank.services.IGeneFunctionService;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +23,8 @@ public class GeneFunctionController {
      * Crear una nueva relación gen-función.
      */
     @PostMapping("/crear")
-    public ResponseEntity<GeneFunction> crearRelacion(@RequestBody GeneFunction relation) {
-        return ResponseEntity.ok(geneFunctionService.crearRelacion(relation));
+    public ResponseEntity<GeneFunction> crearRelacion(@RequestBody GeneFunctionInDTO geneFunctionInDTO) {
+        return ResponseEntity.ok(geneFunctionService.crearRelacion(geneFunctionInDTO));
     }
 
     /**
@@ -56,8 +58,8 @@ public class GeneFunctionController {
     /**
      * Consultar una relación por su ID.
      */
-    @GetMapping("/consultar/{id}")
-    public ResponseEntity<GeneFunction> obtenerPorId(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneFunctionOutDTO> obtenerPorId(@PathVariable Long id) {
         return geneFunctionService.obtenerRelacionPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -66,9 +68,10 @@ public class GeneFunctionController {
     /**
      * Eliminar una relación.
      */
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarRelacion(@PathVariable Long id) {
-        geneFunctionService.eliminarRelacion(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<GeneFunctionOutDTO> eliminarRelacion(@PathVariable Long id) {
+        return geneFunctionService.eliminarRelacion(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

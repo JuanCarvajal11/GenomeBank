@@ -22,7 +22,7 @@ public class ChromosomeController {
      * Obtener todos los cromosomas registrados.
      * @return Lista de cromosomas.
      */
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<Chromosome>> obtenerChromosomes() {
         return ResponseEntity.ok(chromosomeService.obtenerCromosomas());
     }
@@ -44,7 +44,7 @@ public class ChromosomeController {
      * @param chromosomeInDTO Objeto cromosoma recibido en el cuerpo de la petición.
      * @return El cromosoma creado.
      */
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<Chromosome> crearChromosome(@RequestBody ChromosomeInDTO chromosomeInDTO) {
         return ResponseEntity.ok(chromosomeService.crearCromosoma(chromosomeInDTO));
     }
@@ -55,7 +55,7 @@ public class ChromosomeController {
      * @param chromosome Nuevos datos del cromosoma.
      * @return El cromosoma actualizado o 404 si no se encuentra.
      */
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Chromosome> actualizarChromosome(@PathVariable Long id,
                                                            @RequestBody Chromosome chromosome) {
         return chromosomeService.actualizarCromosoma(id, chromosome)
@@ -68,7 +68,7 @@ public class ChromosomeController {
      * @param id ID del cromosoma a eliminar.
      * @return Respuesta sin contenido (204) si se elimina correctamente.
      */
-    @DeleteMapping("/eliminar/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarChromosome(@PathVariable Long id) {
         chromosomeService.eliminarCromosoma(id);
         return ResponseEntity.noContent().build();

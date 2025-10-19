@@ -36,12 +36,12 @@ public class ChromosomeService implements IChromosomeService {
     @Override
     public Chromosome crearCromosoma(ChromosomeInDTO chromosomeInDTO) {
         Genome genome = genomeRepository.getReferenceById(chromosomeInDTO.getGenomeId());
-        Chromosome c = new Chromosome();
-        c.setName(chromosomeInDTO.getName());
-        c.setLength(chromosomeInDTO.getLength());
-        c.setSequence(chromosomeInDTO.getSequence());
-        c.setGenome(genome);
-        return chromosomeRepository.save(c);
+        Chromosome crom = new Chromosome();
+        crom.setName(chromosomeInDTO.getName());
+        crom.setLength(chromosomeInDTO.getLength());
+        crom.setSequence(chromosomeInDTO.getSequence());
+        crom.setGenome(genome);
+        return chromosomeRepository.save(crom);
     }
 
     @Override
