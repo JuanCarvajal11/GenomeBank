@@ -10,20 +10,4 @@ import lombok.NoArgsConstructor;
 public class GenomeInDTO {
     private String versionName;
     private Long speciesId;
-
-    public String getVersionName() {
-        return versionName;
-    }
-
-    public void setVersionName(String versionName) {
-        this.versionName = versionName;
-    }
-
-    public Long getSpeciesId() {
-        return speciesId;
-    }
-
-    public void setSpeciesId(Long speciesId) {
-        this.speciesId = speciesId;
-    }
 }
