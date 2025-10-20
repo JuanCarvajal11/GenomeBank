@@ -7,13 +7,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IChromosomeService {
-    ChromosomeOutDTO crearCromosoma(ChromosomeInDTO chromosomeInDTO);
 
     List<ChromosomeOutDTO> obtenerCromosomas();
 
+    List<ChromosomeOutDTO> obtenerCromosomasPorGenoma(Long genomeId);
+
     Optional<ChromosomeOutDTO> obtenerCromosomaPorId(Long id);
+
+    ChromosomeOutDTO crearCromosoma(ChromosomeInDTO chromosomeInDTO);
 
     Optional<ChromosomeOutDTO> actualizarCromosoma(Long id, ChromosomeInDTO chromosomeInDTO);
 
-    void eliminarCromosoma(Long id);
+    Optional<ChromosomeOutDTO> eliminarCromosoma(Long id);
 }

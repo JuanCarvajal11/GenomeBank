@@ -9,9 +9,9 @@ import com.genomebank.repositories.GenomeRepository;
 import com.genomebank.services.IChromosomeService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ChromosomeService implements IChromosomeService {
@@ -26,42 +26,90 @@ public class ChromosomeService implements IChromosomeService {
 
     @Override
     public List<ChromosomeOutDTO> obtenerCromosomas() {
-        return chromosomeRepository.findAll().stream()
-                .map(this::convertirAOutDTO)
-                .collect(Collectors.toList());
+        List<Chromosome> chromosomes = chromosomeRepository.findAll();
+        List<ChromosomeOutDTO> chromosomesOut = new ArrayList<>();
+
+        for (Chromosome chromosome : chromosomes) {
+            chromosomesOut.add(convertirAOutDTO(chromosome));
+        }
+
+        return chromosomesOut;
+    }
+
+    @Override
+    public List<ChromosomeOutDTO> obtenerCromosomasPorGenoma(Long genomeId) {
+        List<Chromosome> chromosomes = chromosomeRepository.findAll();
+        List<ChromosomeOutDTO> chromosomesOut = new ArrayList<>();
+
+        for (Chromosome chromosome : chromosomes) {
+            if (chromosome.getGenome() != null && chromosome.getGenome().getId().equals(genomeId)) {
+                chromosomesOut.add(convertirAOutDTO(chromosome));
+            }
+        }
+
+        return chromosomesOut;
     }
 
     @Override
     public Optional<ChromosomeOutDTO> obtenerCromosomaPorId(Long id) {
-        return chromosomeRepository.findById(id).map(this::convertirAOutDTO);
+        Optional<Chromosome> chromosomeOptional = chromosomeRepository.findById(id);
+
+        if (chromosomeOptional.isPresent()) {
+            Chromosome chromosome = chromosomeOptional.get();
+            return Optional.of(convertirAOutDTO(chromosome));
+        }
+
+        return Optional.empty();
     }
 
     @Override
     public ChromosomeOutDTO crearCromosoma(ChromosomeInDTO chromosomeInDTO) {
         Genome genome = genomeRepository.getReferenceById(chromosomeInDTO.getGenomeId());
+
         Chromosome c = new Chromosome();
         c.setName(chromosomeInDTO.getName());
         c.setLength(chromosomeInDTO.getLength());
         c.setSequence(chromosomeInDTO.getSequence());
         c.setGenome(genome);
-        return convertirAOutDTO(chromosomeRepository.save(c));
+
+        Chromosome savedChromosome = chromosomeRepository.save(c);
+        return convertirAOutDTO(savedChromosome);
     }
 
     @Override
     public Optional<ChromosomeOutDTO> actualizarCromosoma(Long id, ChromosomeInDTO chromosomeInDTO) {
-        return chromosomeRepository.findById(id).map(cEncontrado -> {
+        Optional<Chromosome> chromosomeOptional = chromosomeRepository.findById(id);
+
+        if (chromosomeOptional.isPresent()) {
+            Chromosome cEncontrado = chromosomeOptional.get();
             Genome genome = genomeRepository.getReferenceById(chromosomeInDTO.getGenomeId());
+
             cEncontrado.setName(chromosomeInDTO.getName());
             cEncontrado.setLength(chromosomeInDTO.getLength());
             cEncontrado.setSequence(chromosomeInDTO.getSequence());
             cEncontrado.setGenome(genome);
-            return convertirAOutDTO(chromosomeRepository.save(cEncontrado));
-        });
+
+            Chromosome savedChromosome = chromosomeRepository.save(cEncontrado);
+            return Optional.of(convertirAOutDTO(savedChromosome));
+        }
+
+        return Optional.empty();
     }
 
     @Override
-    public void eliminarCromosoma(Long id) {
-        chromosomeRepository.deleteById(id);
+    public Optional<ChromosomeOutDTO> eliminarCromosoma(Long id) {
+        Optional<Chromosome> chromosomeOptional = chromosomeRepository.findById(id);
+
+        if (chromosomeOptional.isPresent()) {
+            Chromosome chromosome = chromosomeOptional.get();
+            ChromosomeOutDTO chromosomeOutDTO = convertirAOutDTO(chromosome);
+
+            chromosomeRepository.deleteById(id);
+
+            return Optional.of(chromosomeOutDTO);
+        }
+
+        return Optional.empty();
     }
 
     private ChromosomeOutDTO convertirAOutDTO(Chromosome chromosome) {
