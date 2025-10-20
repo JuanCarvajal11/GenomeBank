@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/function")
+@RequestMapping("/functions")
 public class FunctionController {
 
     private final IFunctionService functionService;
@@ -18,48 +18,38 @@ public class FunctionController {
         this.functionService = functionService;
     }
 
-    /**
-     * Crear una nueva función.
-     */
-    @PostMapping("/create")
-    public ResponseEntity<FunctionOutDTO> crearFunction(@RequestBody FunctionInDTO functionInDTO) {
-        return ResponseEntity.ok(functionService.crearFuncion(functionInDTO));
+    @GetMapping
+    public ResponseEntity<List<FunctionOutDTO>> listarFunciones(
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "category", required = false) String category
+    ) {
+        return ResponseEntity.ok(functionService.obtenerFunciones(code, category));
     }
 
-    /**
-     * Actualizar una función completamente.
-     */
-    @PutMapping("/update/{id}")
-    public ResponseEntity<FunctionOutDTO> actualizarFunction(@PathVariable Long id,
-                                                             @RequestBody FunctionInDTO functionInDTO) {
-        return functionService.actualizarFuncion(id, functionInDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Consultar todas las funciones.
-     */
-    @GetMapping("/")
-    public ResponseEntity<List<FunctionOutDTO>> obtenerFunciones() {
-        return ResponseEntity.ok(functionService.obtenerFunciones());
-    }
-
-    /**
-     * Consultar una función por ID.
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<FunctionOutDTO> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<FunctionOutDTO> obtenerFuncion(@PathVariable Long id) {
         return functionService.obtenerFuncionPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Eliminar una función.
-     */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> eliminarFunction(@PathVariable Long id) {
+    @PostMapping
+    public ResponseEntity<FunctionOutDTO> crearFuncion(@RequestBody FunctionInDTO dto) {
+        return ResponseEntity.ok(functionService.crearFuncion(dto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FunctionOutDTO> actualizarFuncion(
+            @PathVariable Long id,
+            @RequestBody FunctionInDTO dto
+    ) {
+        return functionService.actualizarFuncion(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarFuncion(@PathVariable Long id) {
         functionService.eliminarFuncion(id);
         return ResponseEntity.noContent().build();
     }

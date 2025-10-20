@@ -7,9 +7,9 @@ import com.genomebank.repositories.FunctionRepository;
 import com.genomebank.services.IFunctionService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class FunctionService implements IFunctionService {
@@ -21,34 +21,55 @@ public class FunctionService implements IFunctionService {
     }
 
     @Override
-    public List<FunctionOutDTO> obtenerFunciones() {
-        return functionRepository.findAll().stream()
-                .map(this::convertirAOutDTO)
-                .collect(Collectors.toList());
+    public List<FunctionOutDTO> obtenerFunciones(String code, String category) {
+        List<Function> funciones;
+        if (code != null && !code.isEmpty()) {
+            funciones = functionRepository.findByCode(code);
+        } else if (category != null && !category.isEmpty()) {
+            funciones = functionRepository.findByCategory(category);
+        } else {
+            funciones = functionRepository.findAll();
+        }
+
+        List<FunctionOutDTO> resultado = new ArrayList<>();
+        for (Function f : funciones) {
+            resultado.add(convertirAOutDTO(f));
+        }
+        return resultado;
     }
 
     @Override
     public Optional<FunctionOutDTO> obtenerFuncionPorId(Long id) {
-        return functionRepository.findById(id).map(this::convertirAOutDTO);
+        Optional<Function> encontrada = functionRepository.findById(id);
+        if (encontrada.isPresent()) {
+            FunctionOutDTO dto = convertirAOutDTO(encontrada.get());
+            return Optional.of(dto);
+        }
+        return Optional.empty();
     }
 
     @Override
-    public FunctionOutDTO crearFuncion(FunctionInDTO functionInDTO) {
+    public FunctionOutDTO crearFuncion(FunctionInDTO dto) {
         Function f = new Function();
-        f.setCode(functionInDTO.getCode());
-        f.setName(functionInDTO.getName());
-        f.setCategory(functionInDTO.getCategory());
-        return convertirAOutDTO(functionRepository.save(f));
+        f.setCode(dto.getCode());
+        f.setName(dto.getName());
+        f.setCategory(dto.getCategory());
+        Function guardada = functionRepository.save(f);
+        return convertirAOutDTO(guardada);
     }
 
     @Override
-    public Optional<FunctionOutDTO> actualizarFuncion(Long id, FunctionInDTO functionInDTO) {
-        return functionRepository.findById(id).map(fEncontrada -> {
-            fEncontrada.setCode(functionInDTO.getCode());
-            fEncontrada.setName(functionInDTO.getName());
-            fEncontrada.setCategory(functionInDTO.getCategory());
-            return convertirAOutDTO(functionRepository.save(fEncontrada));
-        });
+    public Optional<FunctionOutDTO> actualizarFuncion(Long id, FunctionInDTO dto) {
+        Optional<Function> encontrada = functionRepository.findById(id);
+        if (encontrada.isPresent()) {
+            Function f = encontrada.get();
+            f.setCode(dto.getCode());
+            f.setName(dto.getName());
+            f.setCategory(dto.getCategory());
+            Function actualizada = functionRepository.save(f);
+            return Optional.of(convertirAOutDTO(actualizada));
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -56,12 +77,12 @@ public class FunctionService implements IFunctionService {
         functionRepository.deleteById(id);
     }
 
-    private FunctionOutDTO convertirAOutDTO(Function function) {
+    private FunctionOutDTO convertirAOutDTO(Function f) {
         FunctionOutDTO dto = new FunctionOutDTO();
-        dto.setId(function.getId());
-        dto.setCode(function.getCode());
-        dto.setName(function.getName());
-        dto.setCategory(function.getCategory());
+        dto.setId(f.getId());
+        dto.setCode(f.getCode());
+        dto.setName(f.getName());
+        dto.setCategory(f.getCategory());
         return dto;
     }
 }

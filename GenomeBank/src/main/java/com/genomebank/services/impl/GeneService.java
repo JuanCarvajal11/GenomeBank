@@ -1,73 +1,129 @@
 package com.genomebank.services.impl;
 
-import com.genomebank.dtos.GeneFunctionInDTO;
-import com.genomebank.dtos.GeneFunctionOutDTO;
+import com.genomebank.dtos.GeneInDTO;
+import com.genomebank.dtos.GeneOutDTO;
 import com.genomebank.entities.Chromosome;
-import com.genomebank.entities.Function;
 import com.genomebank.entities.Gene;
 import com.genomebank.repositories.ChromosomeRepository;
-import com.genomebank.repositories.FunctionRepository;
 import com.genomebank.repositories.GeneRepository;
 import com.genomebank.services.IGeneService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class GeneService implements IGeneService {
 
     private final GeneRepository geneRepository;
     private final ChromosomeRepository chromosomeRepository;
-    private final FunctionRepository functionRepository;
 
     public GeneService(GeneRepository geneRepository,
-                       ChromosomeRepository chromosomeRepository,
-                       FunctionRepository functionRepository) {
+                       ChromosomeRepository chromosomeRepository) {
         this.geneRepository = geneRepository;
         this.chromosomeRepository = chromosomeRepository;
-        this.functionRepository = functionRepository;
     }
 
     @Override
-    public List<GeneFunctionOutDTO> obtenerGenes() {
-        return geneRepository.findAll().stream()
-                .map(this::convertirAOutDTO)
-                .collect(Collectors.toList());
+    public List<GeneOutDTO> obtenerGenes(Long chromosomeId, Long start, Long end, String symbol) {
+        List<Gene> genes;
+
+        // Aplicar filtros según los parámetros recibidos
+        if (chromosomeId != null && start != null && end != null) {
+            // Filtro por cromosoma y rango de posición
+            genes = geneRepository.findByChromosomeIdAndStartPositionGreaterThanEqualAndEndPositionLessThanEqual(
+                    chromosomeId, start, end);
+        } else if (chromosomeId != null) {
+            // Filtro solo por cromosoma
+            genes = geneRepository.findByChromosomeId(chromosomeId);
+        } else if (symbol != null && !symbol.isEmpty()) {
+            // Filtro por símbolo
+            genes = geneRepository.findBySymbolContainingIgnoreCase(symbol);
+        } else {
+            // Sin filtros, devolver todos
+            genes = geneRepository.findAll();
+        }
+
+        // Convertir a DTO usando bucle tradicional
+        List<GeneOutDTO> resultado = new ArrayList<>();
+        for (Gene gene : genes) {
+            resultado.add(convertirAOutDTO(gene));
+        }
+
+        return resultado;
     }
 
     @Override
-    public Optional<GeneFunctionOutDTO> obtenerGenPorId(Long id) {
-        return geneRepository.findById(id)
-                .map(this::convertirAOutDTO);
+    public Optional<GeneOutDTO> obtenerGenPorId(Long id) {
+        Optional<Gene> geneOpt = geneRepository.findById(id);
+
+        if (geneOpt.isPresent()) {
+            return Optional.of(convertirAOutDTO(geneOpt.get()));
+        }
+
+        return Optional.empty();
     }
 
     @Override
-    public GeneFunctionOutDTO crearGen(GeneFunctionInDTO geneInDTO) {
-        Chromosome chromosome = chromosomeRepository.getReferenceById(geneInDTO.getGeneId());
-        Function function = functionRepository.getReferenceById(geneInDTO.getFunctionId());
+    public GeneOutDTO crearGen(GeneInDTO geneInDTO) {
+        Optional<Chromosome> chromosomeOpt = chromosomeRepository.findById(geneInDTO.getChromosomeId());
+
+        if (!chromosomeOpt.isPresent()) {
+            throw new RuntimeException("Chromosome no encontrado con ID: " + geneInDTO.getChromosomeId());
+        }
+
+        Chromosome chromosome = chromosomeOpt.get();
 
         Gene gene = new Gene();
-        gene.setSymbol("GENE_" + geneInDTO.getGeneId());
-        gene.setStartPosition(0L);
-        gene.setEndPosition(100L);
-        gene.setStrand('+');
-        gene.setSequence("N/A");
+        gene.setSymbol(geneInDTO.getSymbol());
+        gene.setStartPosition(geneInDTO.getStartPosition());
+        gene.setEndPosition(geneInDTO.getEndPosition());
+
+        // Convertir String a Character para strand
+        if (geneInDTO.getStrand() != null && !geneInDTO.getStrand().isEmpty()) {
+            gene.setStrand(geneInDTO.getStrand().charAt(0));
+        }
+
+        gene.setSequence(geneInDTO.getSequence());
         gene.setChromosome(chromosome);
 
-        Gene saved = geneRepository.save(gene);
-        return convertirAOutDTO(saved);
+        Gene savedGene = geneRepository.save(gene);
+        return convertirAOutDTO(savedGene);
     }
 
     @Override
-    public Optional<GeneFunctionOutDTO> actualizarGen(Long id, GeneFunctionInDTO geneInDTO) {
-        return geneRepository.findById(id).map(g -> {
-            Function function = functionRepository.getReferenceById(geneInDTO.getFunctionId());
-            g.setSymbol("GENE_" + geneInDTO.getGeneId());
-            g.setSequence("Actualizado");
-            return convertirAOutDTO(geneRepository.save(g));
-        });
+    public Optional<GeneOutDTO> actualizarGen(Long id, GeneInDTO geneInDTO) {
+        Optional<Gene> geneOpt = geneRepository.findById(id);
+
+        if (!geneOpt.isPresent()) {
+            return Optional.empty();
+        }
+
+        Gene gene = geneOpt.get();
+
+        Optional<Chromosome> chromosomeOpt = chromosomeRepository.findById(geneInDTO.getChromosomeId());
+
+        if (!chromosomeOpt.isPresent()) {
+            throw new RuntimeException("Chromosome no encontrado con ID: " + geneInDTO.getChromosomeId());
+        }
+
+        Chromosome chromosome = chromosomeOpt.get();
+
+        gene.setSymbol(geneInDTO.getSymbol());
+        gene.setStartPosition(geneInDTO.getStartPosition());
+        gene.setEndPosition(geneInDTO.getEndPosition());
+
+        // Convertir String a Character para strand
+        if (geneInDTO.getStrand() != null && !geneInDTO.getStrand().isEmpty()) {
+            gene.setStrand(geneInDTO.getStrand().charAt(0));
+        }
+
+        gene.setSequence(geneInDTO.getSequence());
+        gene.setChromosome(chromosome);
+
+        Gene updatedGene = geneRepository.save(gene);
+        return Optional.of(convertirAOutDTO(updatedGene));
     }
 
     @Override
@@ -75,12 +131,50 @@ public class GeneService implements IGeneService {
         geneRepository.deleteById(id);
     }
 
-    private GeneFunctionOutDTO convertirAOutDTO(Gene gene) {
-        GeneFunctionOutDTO dto = new GeneFunctionOutDTO();
-        dto.setId(gene.getId());
-        dto.setGeneSymbol(gene.getSymbol());
-        dto.setFunctionCode(gene.getChromosome() != null ? gene.getChromosome().getName() : "N/A");
-        dto.setEvidence("Experimental");
-        return dto;
+    @Override
+    public Optional<String> obtenerSecuenciaGen(Long id) {
+        Optional<Gene> geneOpt = geneRepository.findById(id);
+
+        if (geneOpt.isPresent()) {
+            return Optional.of(geneOpt.get().getSequence());
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean actualizarSecuenciaGen(Long id, String sequence) {
+        Optional<Gene> geneOpt = geneRepository.findById(id);
+
+        if (geneOpt.isPresent()) {
+            Gene gene = geneOpt.get();
+            gene.setSequence(sequence);
+            geneRepository.save(gene);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Convierte una entidad Gene a un DTO de salida.
+     */
+    private GeneOutDTO convertirAOutDTO(Gene gene) {
+        GeneOutDTO outDTO = new GeneOutDTO();
+        outDTO.setId(gene.getId());
+        outDTO.setSymbol(gene.getSymbol());
+        outDTO.setStartPosition(gene.getStartPosition());
+        outDTO.setEndPosition(gene.getEndPosition());
+
+        // Convertir Character a String para strand
+        if (gene.getStrand() != null) {
+            outDTO.setStrand(String.valueOf(gene.getStrand()));
+        }
+
+        if (gene.getChromosome() != null) {
+            outDTO.setChromosomeName(gene.getChromosome().getName());
+        }
+
+        return outDTO;
     }
 }
