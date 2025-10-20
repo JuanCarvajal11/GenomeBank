@@ -19,4 +19,7 @@ public interface GeneRepository extends JpaRepository<Gene, Long> {
     /** Filtrar genes por rango dentro del cromosoma */
     List<Gene> findByChromosomeIdAndStartPositionGreaterThanEqualAndEndPositionLessThanEqual(
             Long chromosomeId, Long start, Long end);
+
+    /** Contar cuántos genes tiene un cromosoma */
+    int countByChromosomeId(Long chromosomeId);
 }

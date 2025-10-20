@@ -9,9 +9,9 @@ import com.genomebank.repositories.GenomeRepository;
 import com.genomebank.services.IChromosomeService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ChromosomeService implements IChromosomeService {
@@ -24,92 +24,100 @@ public class ChromosomeService implements IChromosomeService {
         this.genomeRepository = genomeRepository;
     }
 
+
     @Override
     public List<ChromosomeOutDTO> obtenerCromosomas() {
-        List<Chromosome> chromosomes = chromosomeRepository.findAll();
-        List<ChromosomeOutDTO> chromosomesOut = new ArrayList<>();
-
-        for (Chromosome chromosome : chromosomes) {
-            chromosomesOut.add(convertirAOutDTO(chromosome));
-        }
-
-        return chromosomesOut;
+        return chromosomeRepository.findAll()
+                .stream()
+                .map(this::convertirAOutDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ChromosomeOutDTO> obtenerCromosomasPorGenoma(Long genomeId) {
-        List<Chromosome> chromosomes = chromosomeRepository.findAll();
-        List<ChromosomeOutDTO> chromosomesOut = new ArrayList<>();
-
-        for (Chromosome chromosome : chromosomes) {
-            if (chromosome.getGenome() != null && chromosome.getGenome().getId().equals(genomeId)) {
-                chromosomesOut.add(convertirAOutDTO(chromosome));
-            }
-        }
-
-        return chromosomesOut;
+        return chromosomeRepository.findByGenomeId(genomeId)
+                .stream()
+                .map(this::convertirAOutDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public Optional<ChromosomeOutDTO> obtenerCromosomaPorId(Long id) {
-        Optional<Chromosome> chromosomeOptional = chromosomeRepository.findById(id);
-
-        if (chromosomeOptional.isPresent()) {
-            Chromosome chromosome = chromosomeOptional.get();
-            return Optional.of(convertirAOutDTO(chromosome));
-        }
-
-        return Optional.empty();
+        return chromosomeRepository.findById(id)
+                .map(this::convertirAOutDTO);
     }
 
     @Override
     public ChromosomeOutDTO crearCromosoma(ChromosomeInDTO chromosomeInDTO) {
-        Genome genome = genomeRepository.getReferenceById(chromosomeInDTO.getGenomeId());
+        Chromosome chromosome = new Chromosome();
 
-        Chromosome c = new Chromosome();
-        c.setName(chromosomeInDTO.getName());
-        c.setLength(chromosomeInDTO.getLength());
-        c.setSequence(chromosomeInDTO.getSequence());
-        c.setGenome(genome);
+        if (chromosomeInDTO.getGenomeId() != null) {
+            Genome genome = genomeRepository.findById(chromosomeInDTO.getGenomeId())
+                    .orElseThrow(() -> new RuntimeException("Genome no encontrado"));
+            chromosome.setGenome(genome);
+        }
 
-        Chromosome savedChromosome = chromosomeRepository.save(c);
-        return convertirAOutDTO(savedChromosome);
+        chromosome.setName(chromosomeInDTO.getName());
+        chromosome.setLength(chromosomeInDTO.getLength());
+        chromosome.setSequence(chromosomeInDTO.getSequence());
+
+        return convertirAOutDTO(chromosomeRepository.save(chromosome));
     }
 
     @Override
     public Optional<ChromosomeOutDTO> actualizarCromosoma(Long id, ChromosomeInDTO chromosomeInDTO) {
-        Optional<Chromosome> chromosomeOptional = chromosomeRepository.findById(id);
+        return chromosomeRepository.findById(id).map(chromosome -> {
 
-        if (chromosomeOptional.isPresent()) {
-            Chromosome cEncontrado = chromosomeOptional.get();
-            Genome genome = genomeRepository.getReferenceById(chromosomeInDTO.getGenomeId());
+            if (chromosomeInDTO.getGenomeId() != null) {
+                Genome genome = genomeRepository.findById(chromosomeInDTO.getGenomeId())
+                        .orElseThrow(() -> new RuntimeException("Genome no encontrado"));
+                chromosome.setGenome(genome);
+            }
 
-            cEncontrado.setName(chromosomeInDTO.getName());
-            cEncontrado.setLength(chromosomeInDTO.getLength());
-            cEncontrado.setSequence(chromosomeInDTO.getSequence());
-            cEncontrado.setGenome(genome);
+            chromosome.setName(chromosomeInDTO.getName());
+            chromosome.setLength(chromosomeInDTO.getLength());
+            chromosome.setSequence(chromosomeInDTO.getSequence());
 
-            Chromosome savedChromosome = chromosomeRepository.save(cEncontrado);
-            return Optional.of(convertirAOutDTO(savedChromosome));
-        }
-
-        return Optional.empty();
+            return convertirAOutDTO(chromosomeRepository.save(chromosome));
+        });
     }
 
     @Override
     public Optional<ChromosomeOutDTO> eliminarCromosoma(Long id) {
-        Optional<Chromosome> chromosomeOptional = chromosomeRepository.findById(id);
+        return chromosomeRepository.findById(id).map(chromosome -> {
+            chromosomeRepository.delete(chromosome);
+            return convertirAOutDTO(chromosome);
+        });
+    }
 
-        if (chromosomeOptional.isPresent()) {
-            Chromosome chromosome = chromosomeOptional.get();
-            ChromosomeOutDTO chromosomeOutDTO = convertirAOutDTO(chromosome);
 
-            chromosomeRepository.deleteById(id);
+    @Override
+    public Optional<String> obtenerSecuenciaCompleta(Long id) {
+        return chromosomeRepository.findById(id)
+                .map(Chromosome::getSequence);
+    }
 
-            return Optional.of(chromosomeOutDTO);
-        }
+    @Override
+    public Optional<String> obtenerSubsecuenciaPorRango(Long id, Long start, Long end) {
+        return chromosomeRepository.findById(id)
+                .map(chromosome -> {
+                    String sequence = chromosome.getSequence();
+                    if (sequence == null || sequence.isEmpty()) return "";
 
-        return Optional.empty();
+                    int inicio = Math.max(0, start.intValue());
+                    int fin = Math.min(sequence.length(), end.intValue());
+                    if (inicio >= fin) return "";
+
+                    return sequence.substring(inicio, fin);
+                });
+    }
+
+    @Override
+    public Optional<ChromosomeOutDTO> registrarOActualizarSecuencia(Long id, String nuevaSecuencia) {
+        return chromosomeRepository.findById(id).map(chromosome -> {
+            chromosome.setSequence(nuevaSecuencia);
+            return convertirAOutDTO(chromosomeRepository.save(chromosome));
+        });
     }
 
     private ChromosomeOutDTO convertirAOutDTO(Chromosome chromosome) {
@@ -117,7 +125,13 @@ public class ChromosomeService implements IChromosomeService {
         dto.setId(chromosome.getId());
         dto.setName(chromosome.getName());
         dto.setLength(chromosome.getLength());
-        dto.setGenomeVersion(chromosome.getGenome().getVersionName());
+
+        if (chromosome.getGenome() != null) {
+            dto.setGenomeVersion(chromosome.getGenome().getVersionName());
+        }
+
         return dto;
     }
+
+
 }
