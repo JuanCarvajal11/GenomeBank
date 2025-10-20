@@ -1,6 +1,7 @@
 package com.genomebank.controllers;
 
-import com.genomebank.entities.Gene;
+import com.genomebank.dtos.GeneInDTO;
+import com.genomebank.dtos.GeneOutDTO;
 import com.genomebank.services.IGeneService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/gene")
+@RequestMapping("/genes")
 public class GeneController {
 
     private final IGeneService geneService;
@@ -18,57 +19,80 @@ public class GeneController {
     }
 
     /**
-     * Crear un nuevo gen.
+     * GET /genes → Listar todos los genes con filtros opcionales
+     * Parámetros: ?chromosomeId=, ?start=, ?end=, ?symbol=
      */
-    @PostMapping("/crear")
-    public ResponseEntity<Gene> crearGene(@RequestBody Gene gene) {
-        return ResponseEntity.ok(geneService.crearGen(gene));
+    @GetMapping
+    public ResponseEntity<List<GeneOutDTO>> obtenerGenes(
+            @RequestParam(required = false) Long chromosomeId,
+            @RequestParam(required = false) Long start,
+            @RequestParam(required = false) Long end,
+            @RequestParam(required = false) String symbol) {
+
+        List<GeneOutDTO> genes = geneService.obtenerGenes(chromosomeId, start, end, symbol);
+        return ResponseEntity.ok(genes);
     }
 
     /**
-     * Actualizar completamente un gen.
+     * GET /genes/{id} → Consultar un gen específico
      */
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<Gene> actualizarGene(@PathVariable Long id, @RequestBody Gene gene) {
-        return geneService.actualizarGen(id, gene)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Actualizar parcialmente un gen.
-     */
-    @PatchMapping("/actualizar_parcial/{id}")
-    public ResponseEntity<Gene> actualizarGeneParcial(@PathVariable Long id, @RequestBody Gene gene) {
-        return geneService.actualizarGen(id, gene)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Consultar todos los genes.
-     */
-    @GetMapping("/consultar_todos")
-    public ResponseEntity<List<Gene>> obtenerGenes() {
-        return ResponseEntity.ok(geneService.obtenerGenes());
-    }
-
-    /**
-     * Consultar un gen por su ID.
-     */
-    @GetMapping("/consultar/{id}")
-    public ResponseEntity<Gene> obtenerPorId(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneOutDTO> obtenerGenPorId(@PathVariable Long id) {
         return geneService.obtenerGenPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Eliminar un gen.
+     * POST /genes → Registrar un nuevo gen (solo ADMIN)
      */
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarGene(@PathVariable Long id) {
+    @PostMapping
+    public ResponseEntity<GeneOutDTO> crearGen(@RequestBody GeneInDTO geneInDTO) {
+        GeneOutDTO nuevoGen = geneService.crearGen(geneInDTO);
+        return ResponseEntity.ok(nuevoGen);
+    }
+
+    /**
+     * PUT /genes/{id} → Actualizar un gen (solo ADMIN)
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<GeneOutDTO> actualizarGen(
+            @PathVariable Long id,
+            @RequestBody GeneInDTO geneInDTO) {
+
+        return geneService.actualizarGen(id, geneInDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * DELETE /genes/{id} → Eliminar un gen (solo ADMIN)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarGen(@PathVariable Long id) {
         geneService.eliminarGen(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * GET /genes/{id}/sequence → Consultar la secuencia del gen
+     */
+    @GetMapping("/{id}/sequence")
+    public ResponseEntity<String> obtenerSecuenciaGen(@PathVariable Long id) {
+        return geneService.obtenerSecuenciaGen(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * PUT /genes/{id}/sequence → Registrar o actualizar la secuencia de ADN del gen (ADMIN)
+     */
+    @PutMapping("/{id}/sequence")
+    public ResponseEntity<Void> actualizarSecuenciaGen(
+            @PathVariable Long id,
+            @RequestBody String sequence) {
+
+        boolean actualizado = geneService.actualizarSecuenciaGen(id, sequence);
+        return actualizado ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 }

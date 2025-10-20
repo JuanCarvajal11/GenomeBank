@@ -1,18 +1,22 @@
 package com.genomebank.services;
 
-import com.genomebank.entities.Genome;
+import com.genomebank.dtos.GenomeInDTO;
+import com.genomebank.dtos.GenomeOutDTO;
+import com.genomebank.dtos.SpeciesOutDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface  IGenomeService {
-    public  List<Genome> obtenerGenomas();
+    public  List<GenomeOutDTO> obtenerGenomas();
 
-    public  Optional<Genome> obtenerGenomaPorId(Long id);
+    public List<GenomeOutDTO> obtenerGenomasPorEspecie(Long speciesId);
 
-    public  Genome crearGenoma(Genome genome);
+    public  Optional<GenomeOutDTO> obtenerGenomaPorId(Long id);
 
-    public  Optional<Genome> actualizarGenoma(Long id, Genome genome);
+    public  GenomeOutDTO crearGenoma(GenomeInDTO genomeInDTO);
 
-    public  void eliminarGenoma(Long id);
+    public  Optional<GenomeOutDTO> actualizarGenoma(Long id, GenomeInDTO genomeInDTO);
+
+    public  Optional<GenomeOutDTO> eliminarGenoma(Long id);
 }

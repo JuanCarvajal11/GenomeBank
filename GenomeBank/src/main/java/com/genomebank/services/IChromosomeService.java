@@ -1,18 +1,30 @@
 package com.genomebank.services;
 
-import com.genomebank.entities.Chromosome;
+import com.genomebank.dtos.ChromosomeInDTO;
+import com.genomebank.dtos.ChromosomeOutDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface IChromosomeService {
-    public List<Chromosome> obtenerCromosomas();
 
-    public Optional<Chromosome> obtenerCromosomaPorId(Long id);
+    // Métodos principales
+    List<ChromosomeOutDTO> obtenerCromosomas();
 
-    public Chromosome crearCromosoma(Chromosome chromosome);
+    List<ChromosomeOutDTO> obtenerCromosomasPorGenoma(Long genomeId);
 
-    public Optional<Chromosome> actualizarCromosoma(Long id, Chromosome chromosome);
+    Optional<ChromosomeOutDTO> obtenerCromosomaPorId(Long id);
 
-    public void eliminarCromosoma(Long id);
+    ChromosomeOutDTO crearCromosoma(ChromosomeInDTO chromosomeInDTO);
+
+    Optional<ChromosomeOutDTO> actualizarCromosoma(Long id, ChromosomeInDTO chromosomeInDTO);
+
+    Optional<ChromosomeOutDTO> eliminarCromosoma(Long id);
+
+    // Métodos de gestión de secuencias
+    Optional<String> obtenerSecuenciaCompleta(Long id);
+
+    Optional<String> obtenerSubsecuenciaPorRango(Long id, Long start, Long end);
+
+    Optional<ChromosomeOutDTO> registrarOActualizarSecuencia(Long id, String nuevaSecuencia);
 }

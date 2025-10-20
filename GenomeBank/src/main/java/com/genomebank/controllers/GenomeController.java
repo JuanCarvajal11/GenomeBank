@@ -1,14 +1,16 @@
 package com.genomebank.controllers;
 
-import com.genomebank.entities.Genome;
+import com.genomebank.dtos.GenomeInDTO;
+import com.genomebank.dtos.GenomeOutDTO;
 import com.genomebank.services.IGenomeService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/genome")
+@RequestMapping("/genomes")
 public class GenomeController {
 
     private final IGenomeService genomeService;
@@ -18,49 +20,16 @@ public class GenomeController {
     }
 
     /**
-     * Endpoint para crear un nuevo genome.
-     * @param genome Objeto Genome a crear.
-     * @return ResponseEntity con el genome creado.
+     * GET /genomes → Listar todos los genomas o filtrar por especie (?speciesId=).
+     * @param speciesId ID de la especie para filtrar (opcional).
+     * @return ResponseEntity con la lista de genomas.
      */
-    @PostMapping("/crear")
-    public ResponseEntity<Genome> crearGenome(@RequestBody Genome genome) {
-        return ResponseEntity.ok(this.genomeService.crearGenoma(genome));
-    }
-
-    /**
-     * Endpoint para actualizar un genome completo.
-     * @param id ID del genome a actualizar.
-     * @param genome Genome con datos actualizados.
-     * @return ResponseEntity con el genome actualizado o 404 si no existe.
-     */
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<Genome> actualizarGenome(@PathVariable Long id,
-                                                   @RequestBody Genome genome) {
-        return this.genomeService.actualizarGenoma(id, genome)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Endpoint para actualizar parcialmente un genome.
-     * @param id ID del genome a actualizar.
-     * @param genome Genome con campos a actualizar.
-     * @return ResponseEntity con el genome actualizado o 404 si no existe.
-     */
-    /*@PatchMapping("/actualizar_parcial/{id}")
-    public ResponseEntity<Genome> actualizarGenomeParcial(@PathVariable Long id,
-                                                          @RequestBody Genome genome) {
-        return this.genomeService.actualizarGenomeParcial(id, genome)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }*/
-
-    /**
-     * Endpoint para obtener todos los genomes.
-     * @return ResponseEntity con la lista de genomes.
-     */
-    @GetMapping("/consultar_todos")
-    public ResponseEntity<List<Genome>> obtenerGenomes() {
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping
+    public ResponseEntity<List<GenomeOutDTO>> obtenerGenomes(@RequestParam(required = false) Long speciesId) {
+        if (speciesId != null) {
+            return ResponseEntity.ok(genomeService.obtenerGenomasPorEspecie(speciesId));
+        }
         return ResponseEntity.ok(genomeService.obtenerGenomas());
     }
 
@@ -69,21 +38,52 @@ public class GenomeController {
      * @param id ID del genome.
      * @return ResponseEntity con el genome o 404 si no existe.
      */
-    @GetMapping("/consultar/{id}")
-    public ResponseEntity<Genome> consultarPorId(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<GenomeOutDTO> consultarPorId(@PathVariable Long id) {
         return this.genomeService.obtenerGenomaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Endpoint para eliminar un genome.
-     * @param id ID del genome a eliminar.
-     * @return ResponseEntity vacío o 404 si no existe.
+     * POST /genomes → Crear un nuevo genoma (solo ADMIN).
+     * @param genomeInDTO Objeto GenomeInDTO a crear.
+     * @return ResponseEntity con el genoma creado.
      */
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarGenome(@PathVariable Long id) {
-        this.genomeService.eliminarGenoma(id);
-        return ResponseEntity.ok().build();
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public ResponseEntity<GenomeOutDTO> crearGenome(@RequestBody GenomeInDTO genomeInDTO) {
+        return ResponseEntity.ok(this.genomeService.crearGenoma(genomeInDTO));
+    }
+
+    /**
+     * PUT /genomes/{id} → Actualizar un genoma (solo ADMIN).
+     * @param id ID del genoma a actualizar.
+     * @param genomeInDTO GenomeInDTO con datos actualizados.
+     * @return ResponseEntity con el genoma actualizado o 404 si no existe.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<GenomeOutDTO> actualizarGenome(
+            @PathVariable Long id,
+            @RequestBody GenomeInDTO genomeInDTO) {
+
+        return this.genomeService.actualizarGenoma(id, genomeInDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * DELETE /genomes/{id} → Eliminar un genoma (solo ADMIN).
+     * @param id ID del genoma a eliminar.
+     * @return ResponseEntity con el genoma eliminado o 404 si no existe.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<GenomeOutDTO> eliminarGenome(@PathVariable Long id) {
+        return this.genomeService.eliminarGenoma(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

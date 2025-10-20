@@ -1,18 +1,18 @@
 package com.genomebank.services;
 
-import com.genomebank.entities.GeneFunction;
-
+import com.genomebank.dtos.GeneFunctionInDTO;
+import com.genomebank.dtos.GeneFunctionOutDTO;
 import java.util.List;
 import java.util.Optional;
 
 public interface IGeneFunctionService {
-    public List<GeneFunction> obtenerRelaciones();
 
-    public Optional<GeneFunction> obtenerRelacionPorId(Long id);
+    // Obtener todas las funciones asociadas a un gen
+    List<GeneFunctionOutDTO> obtenerFuncionesPorGen(Long geneId);
 
-    public GeneFunction crearRelacion(GeneFunction relation);
+    // Asociar una función a un gen
+    GeneFunctionOutDTO asociarFuncionAGen(Long geneId, Long functionId, GeneFunctionInDTO inDTO);
 
-    public Optional<GeneFunction> actualizarRelacion(Long id, GeneFunction relation);
-
-    public void eliminarRelacion(Long id);
+    // Eliminar una asociación gen-función
+    Optional<GeneFunctionOutDTO> eliminarRelacion(Long geneId, Long functionId);
 }
