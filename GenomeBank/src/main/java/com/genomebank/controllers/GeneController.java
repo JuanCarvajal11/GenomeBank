@@ -4,7 +4,9 @@ import com.genomebank.dtos.GeneInDTO;
 import com.genomebank.dtos.GeneOutDTO;
 import com.genomebank.services.IGeneService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class GeneController {
      * GET /genes → Listar todos los genes con filtros opcionales
      * Parámetros: ?chromosomeId=, ?start=, ?end=, ?symbol=
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping
     public ResponseEntity<List<GeneOutDTO>> obtenerGenes(
             @RequestParam(required = false) Long chromosomeId,
@@ -36,6 +39,7 @@ public class GeneController {
     /**
      * GET /genes/{id} → Consultar un gen específico
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}")
     public ResponseEntity<GeneOutDTO> obtenerGenPorId(@PathVariable Long id) {
         return geneService.obtenerGenPorId(id)
@@ -46,6 +50,7 @@ public class GeneController {
     /**
      * POST /genes → Registrar un nuevo gen (solo ADMIN)
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<GeneOutDTO> crearGen(@RequestBody GeneInDTO geneInDTO) {
         GeneOutDTO nuevoGen = geneService.crearGen(geneInDTO);
@@ -55,6 +60,7 @@ public class GeneController {
     /**
      * PUT /genes/{id} → Actualizar un gen (solo ADMIN)
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneOutDTO> actualizarGen(
             @PathVariable Long id,
@@ -68,6 +74,7 @@ public class GeneController {
     /**
      * DELETE /genes/{id} → Eliminar un gen (solo ADMIN)
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarGen(@PathVariable Long id) {
         geneService.eliminarGen(id);
@@ -77,6 +84,7 @@ public class GeneController {
     /**
      * GET /genes/{id}/sequence → Consultar la secuencia del gen
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}/sequence")
     public ResponseEntity<String> obtenerSecuenciaGen(@PathVariable Long id) {
         return geneService.obtenerSecuenciaGen(id)
@@ -87,6 +95,7 @@ public class GeneController {
     /**
      * PUT /genes/{id}/sequence → Registrar o actualizar la secuencia de ADN del gen (ADMIN)
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/sequence")
     public ResponseEntity<Void> actualizarSecuenciaGen(
             @PathVariable Long id,

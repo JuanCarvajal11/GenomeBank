@@ -4,6 +4,7 @@ import com.genomebank.dtos.FunctionInDTO;
 import com.genomebank.dtos.FunctionOutDTO;
 import com.genomebank.services.IFunctionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class FunctionController {
     public FunctionController(IFunctionService functionService) {
         this.functionService = functionService;
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping
     public ResponseEntity<List<FunctionOutDTO>> listarFunciones(
             @RequestParam(value = "code", required = false) String code,
@@ -32,12 +33,12 @@ public class FunctionController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<FunctionOutDTO> crearFuncion(@RequestBody FunctionInDTO dto) {
         return ResponseEntity.ok(functionService.crearFuncion(dto));
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<FunctionOutDTO> actualizarFuncion(
             @PathVariable Long id,
@@ -47,7 +48,7 @@ public class FunctionController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarFuncion(@PathVariable Long id) {
         functionService.eliminarFuncion(id);
